@@ -1,9 +1,9 @@
-# Rishi Nachnani - ICS3U1 - Color Slicer (for summative)
+# Rishi Nachnani
 # Tuesday, January 9th, 2024
 
 import pygame
 import random
-import time
+import sys
 
 # changing working directory to the directory where the files are located, as to let the images be loaded properly.
 import os
@@ -14,13 +14,17 @@ os.chdir(dname)
 # -- -- -- - - -
 
 # fixing pygame scaling issue with windows on some laptops. - https://stackoverflow.com/questions/44334594/how-to-avoid-scaling-pygame-window-when-make-ui-larger-is-used-in-windows 
-import ctypes
-ctypes.windll.user32.SetProcessDPIAware()
+if sys.platform == "win32":
+    import ctypes
+    ctypes.windll.user32.SetProcessDPIAware()
 # ----
 
 pygame.init()
 SIZE = (800,700)
 screen = pygame.display.set_mode(SIZE)
+
+pygame.display.set_caption(f"CO\N{SUBSCRIPT TWO} Destroyer")
+pygame.display.set_icon(pygame.image.load("images/icon.png"))
 
 myClock = pygame.time.Clock()
 
@@ -89,32 +93,34 @@ def drawFallingObjects():
 
     if ctr >= FPS/falling_rate_per_second:
         x = random.randint(80, 720)
-        if random.randint(0,100) <= 15:
-            fallingObjects.append([x, 50, 60, BLACK, True, False]) # x, y, radius, color, bomb?, sliced?
+        if random.randint(0,100) <= 15: # 15% chance for a bomb to be generated
+            fallingObjects.append([x, 50, 60, BLACK, True, False]) # x, y, radius, color, bomb?, sliced? (obj var)
         else:
             radius = random.randint(30, 60)
             color = random.choice(CIRCLE_COLORS)
-            fallingObjects.append([x, 50, radius, color, False, False]) # x, y, radius, color, bomb?, sliced?
+            fallingObjects.append([x, 50, radius, color, False, False]) # x, y, radius, color, bomb?, sliced? (obj var)
         ctr = 0
 
     for obj in fallingObjects:
-        if obj[5]:
-            pygame.draw.circle(screen, BLUE, (obj[0], obj[1]), obj[2])
-            if obj[4]:
-                pygame.draw.circle(screen, RED, (obj[0], obj[1]), obj[2], width=5)
-        elif obj[4]:
-            pygame.draw.circle(screen, obj[3], (obj[0], obj[1]), obj[2])
-            pygame.draw.circle(screen, WHITE, (obj[0], obj[1]), obj[2], width=5)
-            pygame.draw.circle(screen, GOLD, (obj[0]-20, obj[1]-20), 12)
+        x, y, radius, color, bomb, sliced = obj
+        if sliced: 
+            pygame.draw.circle(screen, BLUE, (x, y), radius)
+            if bomb:
+                pygame.draw.circle(screen, RED, (x, y), radius, width=5)
+        elif bomb: 
+            pygame.draw.circle(screen, color, (x, y), radius)
+            pygame.draw.circle(screen, WHITE, (x, y), radius, width=5)
+            pygame.draw.circle(screen, GOLD, (x-20, y-20), 12)
         else:
-            pygame.draw.circle(screen, obj[3], (obj[0], obj[1]), obj[2])
-            pygame.draw.circle(screen, GREY, (obj[0], obj[1]), obj[2], width=5)
+            pygame.draw.circle(screen, color, (x, y), radius)
+            pygame.draw.circle(screen, GREY, (x, y), radius, width=5)
 
-        obj[1] += falling_speed
+        obj[1] += falling_speed # moving objects down (changing y value)
 
     ctr += 1
 
 def checkSlice():
+    # kinda obv, checking if something was sliced or not
     global previous_left, mouse_trace, fallingObjects, points, lives
 
     leftxy = False
@@ -126,7 +132,8 @@ def checkSlice():
     for obj in fallingObjects:
         x, y, radius, color, bomb, sliced = obj
 
-        for trace in mouse_trace:
+        for trace in mouse_trace: # logic is kinda weird/complicated, basically checking if you sliced it
+            # checking x and y coords and checking if the mouse actually went through
 
             if trace[1][0] < x-radius+10 and trace[1][1] > y-radius-10 and trace[1][1] < y+radius+10 and not leftxy:
                 leftxy = True
@@ -138,8 +145,8 @@ def checkSlice():
             elif trace[1][1] > y+radius-10 and trace[1][0] > x-radius-10 and trace[1][0] < x+radius+10 and not rightyx:
                 rightyx = True
         
-        if (leftxy and rightxy) or (leftyx and rightyx):
-            if obj[4]:
+        if (leftxy and rightxy) or (leftyx and rightyx): #basically means if sliced
+            if bomb: # bomb logic, removes life
                 lives -= 1
                 bomb_sound.play()
                 bomb_sound.set_volume(0.75)
@@ -147,7 +154,7 @@ def checkSlice():
                 points += 90-radius
                 slice_sound.play()
                 slice_sound.set_volume(0.75)
-            obj[5] = True
+            obj[5] = True # setting ibject sliced to true
             mouse_trace = []
             previous_left = False
             return
@@ -161,6 +168,7 @@ def checkSlice():
     previous_left = False
 
 def drawSliceTrace():
+    # draws the line of your mouse slicing, so you can actually see the slice
     global previous_left, mouse_trace
 
     mouse_pos = pygame.mouse.get_pos()
@@ -178,15 +186,17 @@ def drawSliceTrace():
         pygame.draw.line(screen, WHITE, trace[0], trace[1], width=5)
 
 def checkMissedObjects():
+    # checking if a object hits the ground and removes a live, or if obj was sliced and deletes it
+    # bomb logic handled in checkSlice() function
     global lives, fallingObjects, state
 
-    for obj in fallingObjects:
-        if obj[1] >= 580 and not obj[5] and not obj[4]:
-            del fallingObjects[fallingObjects.index(obj)]
+    for index, [x, y, radius, color, bomb, sliced] in enumerate(fallingObjects):
+        if y >= 580 and not sliced and not bomb:
+            del fallingObjects[index]
             lives -= 1
             oof_sound.play()
-        elif (obj[5] or obj[4]) and obj[1] >= 580:
-            del fallingObjects[fallingObjects.index(obj)]
+        elif (sliced or bomb) and y >= 580:
+            del fallingObjects[index]
     
     if lives <= 0:
         state = 'end'
@@ -197,12 +207,14 @@ def checkMissedObjects():
         #reset()
 
 def checkFocused():
+    # function to pause game if you accidentally close the window by going outside of it
     global state
     if not pygame.mouse.get_focused() and not pygame.key.get_focused(): # https://www.pygame.org/docs/ref/key.html#pygame.key.get_focused and https://www.pygame.org/docs/ref/mouse.html 
         state = 'paused'
         return True
 
 def reset(retry=False):
+    # resets all game variables, allowing the game to restart
     global falling_rate_per_second, falling_speed, lives, points, previous_left, mouse_trace, fallingObjects, ctr
     if not retry:
         falling_rate_per_second = 2.15
@@ -215,8 +227,9 @@ def reset(retry=False):
     ctr = 0
 
 def game():
+    # pygame game run function
     if checkFocused():
-        return
+        return # stops everything from moving
     drawGameBG()
     draw_hearts()
     draw_points()
@@ -271,6 +284,8 @@ def paused():
     qui = boxfont.render('QUIT', False, BLACK)
     qrect = qui.get_rect()
     qrect.center = (400, 520)
+
+    # changing button color when hovering (animation)
 
     if button_unpause.collidepoint(mouse_pos):
         ucolor = RED
@@ -343,6 +358,8 @@ def menu():
     pygame.draw.rect(screen, icolor, button_instructions, border_radius=30) # drawing rounded rects - https://www.geeksforgeeks.org/how-to-draw-a-rectangle-with-rounded-corner-in-pygame/ 
     pygame.draw.rect(screen, RED, button_instructions, width=5, border_radius=30)
 
+    # changing button color when hovering (animation)
+
     if button_singleplayer.collidepoint(mouse_pos):
         scolor = RED
     else:
@@ -367,7 +384,7 @@ def menu():
         button_sound.play()
 
     font = pygame.font.Font('./font.otf', 60)
-    title = font.render('CO2 DESTROYER', True, WHITE)
+    title = font.render(f'CO2 Destroyer', True, WHITE) # font doesn't have subscript and ion wanan find anohter one
     titleRect = title.get_rect()
     titleRect.center = (400, 175)
 
@@ -465,6 +482,7 @@ def difficulty_selection():
     screen.blit(normal, nrect)
     screen.blit(hard, hrect)
     # screen.blit(advanced, arect)
+
 
     if button_easy.collidepoint(mouse_pos):
         ecolor = RED
@@ -618,7 +636,7 @@ def instructions():
     pygame.display.flip()
 
 
-
+# pygame game loop
 while True:  
     # checking events, quit event allows for game to be closed by clicking the x icon provided by windows in the top right
     for evnt in pygame.event.get():
