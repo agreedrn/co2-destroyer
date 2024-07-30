@@ -5,7 +5,7 @@ The premises of CO<sub>2</sub> Destroyer is to slice CO<sub>2</sub> molecules be
 
 You will have 3 lives (♥️♥️♥️), and you lose a life when **a molecule hits the ground** or **you slice a bomb (💣)**.
 
-[Video Demo](https://google.com)
+[Video Demo](https://drive.google.com/file/d/1i7Dr2fZpFmvj1ZOLrStFmgnZoqSxdioK/view?usp=sharing)
 
 ## Installation and Usage
 Make sure you have the latest verion of [Python](https://www.python.org/downloads/) installed for your OS. This is essential to run the game.
