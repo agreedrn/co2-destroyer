@@ -1,7 +1,7 @@
 # CO<sub>2</sub> Destroyer
 This game was created as a culmination of my passion to build a simple, yet elegant game, and as a bonus it also spreads awareness about climate change, since I wanted to try to make a impact on the world.
 
-The premises of CO<sub>2</sub> Destroyer is to slice CO<sub>2</sub> molecules before they hit the ground, while also making sure you don't slice the bombs (💣). The goal of the game is to get the **highest score possible**. These molecules are of various sizes, and depending on the size you will destory a different amount of CO<sub>2</sub>, which will be added to a total score.
+The premises of CO<sub>2</sub> Destroyer is to slice CO<sub>2</sub> molecules before they hit the ground, while also making sure you don't slice the bombs (💣). The goal of the game is to get the **highest score possible**. These molecules are of various sizes, and depending on the size you will destroy a different amount of CO<sub>2</sub>, which will be added to a total score.
 
 You will have 3 lives (♥️♥️♥️), and you lose a life when **a molecule hits the ground** or **you slice a bomb (💣)**.
 
@@ -10,7 +10,7 @@ You will have 3 lives (♥️♥️♥️), and you lose a life when **a molecul
 ## Installation and Usage
 Make sure you have the latest verion of [Python](https://www.python.org/downloads/) installed for your OS. This is essential to run the game.
 
-After that, the only depedency for python you will need to download is **Pygame**. You can download it with the command below:
+After that, the only depedency for python you will need to download is **pygame**. You can download it with the command below:
 ```
 pip install pygame
 ```
